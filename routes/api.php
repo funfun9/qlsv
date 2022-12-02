@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\UserController;
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,36 +15,73 @@ use App\Http\Controllers\Api\UserController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+// try{
+Route::controller(UserController::class)
+    ->middleware(['XSS'])
+    ->group(function () {
+        Route::post('/login', 'login');
+        Route::post('/register', 'register');
 
-route::get('/students', [StudentController::class, 'index']);
+        // Route::get('/checkrole', 'checkRole');
+});
 
-route::get('/student/{id}', [StudentController::class, 'show']);
+Route::controller(UserController::class)
+    ->middleware(['checkActive', 'XSS', 'checkAdmin'])
+    ->group(function () {
+    route::patch('/user-delete/{id}', 'delete')->name('delete user');
+    route::patch('/student-delete/{id}', 'delete')->name('delete student');
+    route::patch('/active-update/{id}', 'updateActive');
+});
 
-route::post('/student-add', [StudentController::class, 'add']);
+Route::controller(UserController::class)
+    ->middleware(['checkActive', 'XSS', 'checkGet'])
+    ->group(function () {
+        route::get('/users', 'index');
+        
+        route::get('/user/{id}', 'show');
 
-route::put('/student-update/{id}', [StudentController::class, 'update']);
+        Route::get('/findrole', 'findRole');
 
-route::patch('/student-update/{id}', [StudentController::class, 'update']);
+        Route::get('/profile', 'userProfile');
 
-route::patch('/student-delete/{id}', [StudentController::class, 'delete']);
+        Route::get('/checklogin', 'checklogin');
 
-route::delete('/student-destroy/{id}', [StudentController::class, 'destroy']);
+    });
+    Route::controller(StudentController::class)
+    ->middleware(['checkActive', 'XSS', 'checkGet'])
+    ->group(function () {
+        route::get('/students', 'index');
+        
+        route::get('/student/{id}', 'show');
+    });
+
+Route::controller(UserController::class)
+    ->middleware(['checkActive', 'XSS', 'checkRolePermission'])
+    ->group(function () {
+    
+    route::post('/user-add', 'add')->name('add user');
+    
+    // route::put('/user-update/{id}', 'update')->name('update user');
+    
+    route::patch('/user-update/{id}', 'update')->name('update user');
+    
+    route::put('/profile-update', 'profileUpdate');
+    
+    route::patch('/profile-update', 'profileUpdate');
+
+    Route::post('/logout', 'logout');
+
+});
 
 
-route::get('/users', [UserController::class, 'index']);
+Route::controller(StudentController::class)
+    ->middleware(['checkActive',  'XSS'])
+    ->group(function () {
 
-route::get('/user/{id}', [UserController::class, 'show']);
-
-route::post('/user-add', [UserController::class, 'add']);
-
-route::put('/user-update/{id}', [UserController::class, 'update']);
-
-route::patch('/user-update/{id}', [UserController::class, 'update']);
-
-route::patch('/user-delete/{id}', [UserController::class, 'delete']);
-
-route::delete('/user-destroy/{id}', [UserController::class, 'destroy']);
-
-Route::post('/login', [UserController::class, 'login']);
- 
-Route::get('/logout', [UserController::class, 'logout']);
+    route::post('/student-add', 'add')->name('add student');
+    
+    // route::put('/student-update/{id}', 'update')->name('update student');
+    
+    route::patch('/student-update/{id}', 'update')->name('update student');
+    
+});
